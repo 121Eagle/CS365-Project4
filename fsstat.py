@@ -51,10 +51,10 @@ class Fat:
 
         Refer to Carrier Chapters 9 and 10.
         """
-        self.file.seek(0, 11)
-        used_bytes = bytearray(self.file.read(7))
+        self.file.seek(11)
+        used_bytes = bytearray(self.file.read(6))
         assert(len(used_bytes[0:2]) == 2)
-        assert(self.file.tell() == 17)
+        assert (self.file.tell() == 17), self.file.tell()
         self.boot |= dict(
                         zip(
                             (
