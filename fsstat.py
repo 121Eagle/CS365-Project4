@@ -5,7 +5,7 @@ import os
 import sys
 from typing import Optional
 
-# import hw4utils
+import hw4utils
 
 
 def unpack(data: bytes, signed=False, byteorder="little") -> int:
@@ -51,23 +51,9 @@ class Fat:
 
         Refer to Carrier Chapters 9 and 10.
         """
-        self.file.seek(11)
-        used_bytes = bytearray(self.file.read(6))
-        assert(len(used_bytes[0:2]) == 2)
-        assert (self.file.tell() == 17), self.file.tell()
-        self.boot |= dict(
-                        zip(
-                            (
-                             "bytes_per_sector",
-                             "sectors_per_cluster",
-                             "reserved_sectors",
-                             "number_of_fats"
-                            ),
-                            map(unpack,
-                                (used_bytes[0:2],
-                                 used_bytes[2:3],
-                                 used_bytes[3:5],
-                                 used_bytes[5:6]))))
+        full_reserved_sector = self.file.read(512) # because screw it
+        # I will just read in the entire reserved sector at once and deal with
+        # the parts later
 
     def info(self):
         """Print already-parsed information about the FAT filesystem as a json string"""
