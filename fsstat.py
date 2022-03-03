@@ -154,10 +154,14 @@ class Fat:
             cluster_end = cluster_start + 5  # the ending value of a slice is
             # exclusive rather then inclusive
             current_cluster = unpack(self.fat[cluster_start:cluster_end])
-            cluster_list.extend([
-                self._to_sector(current_cluster),
-                self._end_sector(current_cluster)
-                ])
+            cluster_list.extend(
+                    list(
+                        range(
+                            self._to_sector(current_cluster),
+                            self._end_sector(current_cluster)
+                            )
+                        )
+                    )
 
         return cluster_list
 
@@ -184,7 +188,17 @@ class Fat:
         returns:
             bytes: data (possibly zero length)
         """
-        pass
+        data = bytearray()
+        sectors = self._get_sectors(cluster)
+        for sector in sectors:
+            self._seek_to_sector(sector)
+
+    def _seek_to_sector(self, sector: int) -> None:
+        """
+        seeks the current file to the sector requested
+        """
+        BYTES_TO_SEEK = self.boot["bytes_per_sector"]
+        self.file.seek(sector * BYTES_TO_SEEK)
 
     def _get_first_cluster(self, entry: bytes) -> int:
         """Returns the first cluster of the content of a given directory entry
