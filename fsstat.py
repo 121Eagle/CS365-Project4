@@ -192,6 +192,7 @@ class Fat:
         sectors = self._get_sectors(cluster)
         for sector in sectors:
             self._seek_to_sector(sector)
+            data += self.file.read(self.boot["bytes_per_sector"])
 
     def _seek_to_sector(self, sector: int) -> None:
         """
