@@ -120,6 +120,14 @@ class Fat:
         """
         pass
 
+    @property
+    def _sectors_per_cluster(self) -> int:
+        """
+        I am just annoyed with trying to get the line length correct,
+        So I am making this a property, fight me on this
+        """
+        return self.boot["sectors_per_cluster"]
+
     def _get_sectors(self, number: int) -> list[int]:
         """Return list of sectors for a given table entry number
 
