@@ -51,9 +51,41 @@ class Fat:
 
         Refer to Carrier Chapters 9 and 10.
         """
-        full_reserved_sector = self.file.read(512) # because screw it
+        boot_sector = self.file.read(512) # because screw it
         # I will just read in the entire reserved sector at once and deal with
         # the parts later
+        self.boot = dict(zip(
+            ("bytes_per_sector",
+             "sectors_per_cluster",
+             "reserved_sectors",
+             "number_of_fats"),
+            map(unpack,
+                (boot_sector[11:13],
+                 boot_sector[13:14],
+                 boot_sector[14:16],
+                 boot_sector[16:17]))))
+        potential_total = unpack(boot_sector[19:21])
+        if potential_total is 0:
+            potential_total = unpack(boot_sector[32:36])
+        self.boot |= {"total_sectors": potential_total}
+        self.boot |= dict(zip(
+            ("sectors_per_fat",
+             "root_dir_first_cluster"),
+            map(unpack,
+                (boot_sector[36:40],
+                 boot_sector[44:48],
+                 ))))
+        self.boot |= {"bytes_per_cluster":
+                self.boot["bytes_per_sector"] * self.boot["sectors_per_cluster"]}
+        self.boot |= {"fat0_sector_start" : self.boot["reserved_sectors"] + 1}
+        self.boot |= {
+                "fat0_sector_end" : self.boot["fat0_sector_start"] * self.boot["sectors_per_fat"]
+                }
+        self.boot |= {"data_start": self.boot["fat0_sector_start"] * self.boot["sectors_per_fat"] * self.boot["number_of_fats"]}
+        self.boot |= {"data_end": potential_total}
+        self.file.seek(self.boot["fat0_sector_start"] * self.boot["bytes_per_sector"])
+        self.fat = self.file.read(self.boot["sectors_per_fat"] * self.boot["bytes_per_sector"])
+        self.file.seek(0)
 
     def info(self):
         """Print already-parsed information about the FAT filesystem as a json string"""
