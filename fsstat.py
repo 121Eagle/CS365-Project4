@@ -118,7 +118,7 @@ class Fat:
         returns:
             int: sector number
         """
-        pass
+        return self._to_sector(cluster) + (self._sectors_per_cluster - 1)
 
     @property
     def _sectors_per_cluster(self) -> int:
@@ -145,7 +145,21 @@ class Fat:
             0 < (number * 4 + 4) < self.boot["sectors_per_fat"]
         ), f"{number} exceeds FAT size"
 
-        pass
+        cluster_list = []
+        current_cluster = unpack(self.fat[number * 4: number * 4 + 5])
+        if current_cluster == 0:
+            return cluster_list
+        while current_cluster <= 0xffffff7:
+            cluster_start = current_cluster * 4
+            cluster_end = cluster_start + 5  # the ending value of a slice is
+            # exclusive rather then inclusive
+            current_cluster = unpack(self.fat[cluster_start:cluster_end])
+            cluster_list.extend([
+                self._to_sector(current_cluster),
+                self._end_sector(current_cluster)
+                ])
+
+        return cluster_list
 
     def _retrieve_data(self, cluster: int, ignore_unallocated=False) -> bytes:
         """Read in the data for a given file allocation table entry number (i.e., the cluster number).
