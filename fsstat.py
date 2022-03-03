@@ -190,9 +190,15 @@ class Fat:
         """
         data = bytearray()
         sectors = self._get_sectors(cluster)
+        if ignore_unallocated and len(sectors) == 0:
+            sectors = range(
+                    self._to_sector(cluster),
+                    self._end_sector(cluster)
+                    )
         for sector in sectors:
             self._seek_to_sector(sector)
-            data += self.file.read(self.boot["bytes_per_sector"])
+            data += self._read_sector()
+        return bytes(data)
 
     def _seek_to_sector(self, sector: int) -> None:
         """
@@ -204,7 +210,7 @@ class Fat:
     def _read(self, size: int) -> bytes:
         return self.file.read(size)
 
-    def _read_sector(self, sectors: int = 1):
+    def _read_sector(self, sectors: int = 1) -> bytes:
         return self._read(sectors * self.boot["bytes_per_sector"])
 
     def _get_first_cluster(self, entry: bytes) -> int:
