@@ -286,7 +286,7 @@ class Fat:
         returns:
             list[dict]: list of dictionaries, one dict per entry
         """
-        pass
+        UNIQUE_TYPES = frozenset(("vol", "lfn", "dir"))
 
 
 def main():
