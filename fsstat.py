@@ -201,6 +201,12 @@ class Fat:
         BYTES_TO_SEEK = self.boot["bytes_per_sector"]
         self.file.seek(sector * BYTES_TO_SEEK)
 
+    def _read(self, size: int) -> bytes:
+        return self.file.read(size)
+
+    def _read_sector(self, sectors: int = 1):
+        return self._read(sectors * self.boot["bytes_per_sector"])
+
     def _get_first_cluster(self, entry: bytes) -> int:
         """Returns the first cluster of the content of a given directory entry
 
