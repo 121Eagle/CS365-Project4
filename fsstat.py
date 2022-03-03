@@ -106,7 +106,8 @@ class Fat:
         returns:
             int: sector number
         """
-        pass
+        sector_offset = (cluster - 2) * self.boot["sectors_per_cluster"]
+        return (sector_offset + self.boot["data_start"])
 
     def _end_sector(self, cluster: int) -> int:
         """Return the last sector of a cluster
