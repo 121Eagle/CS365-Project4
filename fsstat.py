@@ -3,7 +3,9 @@
 import json
 import os
 import sys
-from typing import Optional
+from typing import Optional, TypeVar
+from collections.abc import Iterable
+from itertools import zip_longest
 
 import hw4utils
 
@@ -13,6 +15,8 @@ def unpack(data: bytes, signed=False, byteorder="little") -> int:
     return int.from_bytes(data, byteorder=byteorder, signed=signed)
 
 
+T = TypeVar('T')
+def grouper(iterable: Iterable, length: int = 4, fillvalue = None
 class Fat:
     def __init__(self, filename):
         """Parses a FAT32 filesystem"""
@@ -287,6 +291,8 @@ class Fat:
             list[dict]: list of dictionaries, one dict per entry
         """
         UNIQUE_TYPES = frozenset(("vol", "lfn", "dir"))
+        directory = self._retreive_data(cluster, False)
+        for directory in 
 
 
 def main():
