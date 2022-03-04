@@ -5,7 +5,7 @@ import os
 import sys
 from typing import Optional, TypeVar, Any
 from collections.abc import Iterable
-from itertools import zip_longest
+from itertools import zip_longest, chain
 
 import hw4utils
 
@@ -267,7 +267,7 @@ class Fat:
         """
         pass
 
-    def parse_dir(self, cluster: int, parent="") -> list[dict[str, ANY]]:
+    def parse_dir(self, cluster: int, parent="") -> list[dict[str, Any]]:
         """Parse a directory cluster, returns a list of dictionaries, one dict per entry.
 
         This function recursively parses any entry that is itself a directory.
@@ -317,10 +317,12 @@ class Fat:
                         pass
                     directory_entries.append(answer)
         directory_entries.extend(
+                chain.from_iterable(
                 (self.parse_dir(directory["content_cluster"], parent + "/" + directory["name"])
                     for directory
                     in directory_entries
                     if directory["entry_type"] == "dir" and directory["name"] not in NO))
+                )
         return directory_entries
 
 
