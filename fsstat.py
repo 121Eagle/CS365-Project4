@@ -3,7 +3,7 @@
 import json
 import os
 import sys
-from typing import Optional, TypeVar
+from typing import Optional, TypeVar, Any
 from collections.abc import Iterable
 from itertools import zip_longest
 
@@ -20,8 +20,8 @@ T = TypeVar('T')
 
 def grouper(iterable: Iterable[T],
             length: int = 4,
-            fillvalue: Optional[T] = None) -> zip_longest:
-    args: list[Iterable[T]] = [iter(iterable)] * n
+            fillvalue: Optional[T] = None) -> Iterable:
+    args: list[Iterable[T]] = [iter(iterable)] * length
     return zip_longest(*args)
 
 
@@ -157,7 +157,7 @@ class Fat:
             0 < (number * 4 + 4) < self.boot["sectors_per_fat"]
         ), f"{number} exceeds FAT size"
 
-        cluster_list = []
+        cluster_list: list[int] = []
         current_cluster = unpack(self.fat[number * 4: number * 4 + 5])
         if current_cluster == 0:
             return cluster_list
@@ -267,7 +267,7 @@ class Fat:
         """
         pass
 
-    def parse_dir(self, cluster: int, parent="") -> list[dict]:
+    def parse_dir(self, cluster: int, parent="") -> list[dict[str, ANY]]:
         """Parse a directory cluster, returns a list of dictionaries, one dict per entry.
 
         This function recursively parses any entry that is itself a directory.
@@ -298,7 +298,8 @@ class Fat:
         returns:
             list[dict]: list of dictionaries, one dict per entry
         """
-        directory = self._retreive_data(cluster, False)
+        directory = self._retrieve_data(cluster, False)
+        NO = frozenset({".", ".."})
         directory_entries = []
         for entry_num, dir_entry in enumerate(grouper(directory, 32)):
                     answer = {
@@ -319,7 +320,8 @@ class Fat:
                 (self.parse_dir(directory["content_cluster"], parent + "/" + directory["name"])
                     for directory
                     in directory_entries
-                    if directory["entry_type"] == "dir"))
+                    if directory["entry_type"] == "dir" and directory["name"] not in NO))
+        return directory_entries
 
 
 
