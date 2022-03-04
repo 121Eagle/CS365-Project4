@@ -298,21 +298,29 @@ class Fat:
         returns:
             list[dict]: list of dictionaries, one dict per entry
         """
-        UNIQUE_TYPES = frozenset(("vol", "lfn", "dir"))
         directory = self._retreive_data(cluster, False)
         directory_entries = []
         for entry_num, dir_entry in enumerate(grouper(directory, 32)):
-                    directory_entries.append(
-                            answer = {
+                    answer = {
                                 "parent": parent,
                                 "dir_cluster": cluster,
                                 "entry_num": entry_num,
                                 "dir_sectors": self._get_sectors(cluster),
                                 "entry_type": hw4utils.get_entry_type(dir_entry),
-                                "name": hw4utils.parse_name(dir_entry)
+                                "name": hw4utils.parse_name(dir_entry),
                                 "data": dir_entry[0] == 0xe5 or dir_entry[0] == 0x00
-                             }
-                            )
+                            }
+                    if answer["entry_type"] is "dir":
+                        answer |= {"content_cluster": unpack(dir_entry[20:22] + dir_entry[26:28])}
+                    if answer["entry_type"] not in {"vol", "lfn", "dir"}:
+                        pass
+                    directory_entries.append(answer)
+        directory_entries.extend(
+                (self.parse_dir(directory["content_cluster"], parent + "/" + directory["name"])
+                    for directory
+                    in directory_entries
+                    if directory["entry_type"] == "dir"))
+
 
 
 
