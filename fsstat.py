@@ -203,10 +203,11 @@ class Fat:
         data = bytearray()
         sectors = self._get_sectors(cluster)
         if ignore_unallocated and len(sectors) == 0:
-            sectors = range(
-                    self._to_sector(cluster),
-                    self._end_sector(cluster)
-                    )
+            sectors = list(
+                    range(
+                        self._to_sector(cluster),
+                        self._end_sector(cluster)
+                        ))
         for sector in sectors:
             self._seek_to_sector(sector)
             data += self._read_sector()
@@ -272,8 +273,8 @@ class Fat:
             slack = None
         slack = all_file_data[-32:]
         return (
-                all_file_data[0:min(128, filesize)],
-                slack
+                all_file_data[0:min(128, filesize)].decode("ascii", "ignore"),
+                slack.decode("ascii", "ignore")
                )
 
 
@@ -333,14 +334,17 @@ class Fat:
                                         )
                                     ))
                         answer |= {
-                                    "filesize": 0,
+                                    "filesize": unpack(dir_entry[28:]),
                                     "content_sectors": content_sectors
                                   } | dict(zip(
                                       (
                                           "content",
                                           "slack"
                                       ),
-                                      self._get_content(content_sectors)))
+                                      self._get_content(
+                                          content_sectors[0],
+                                          answer["filesize"]
+                                          )))
                     directory_entries.append(answer)
         directory_entries.extend(
                 chain.from_iterable(
