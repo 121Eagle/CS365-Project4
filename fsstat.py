@@ -86,7 +86,7 @@ class Fat:
             )
         )
         potential_total = unpack(boot_sector[19:21])
-        if potential_total is 0:
+        if potential_total == 0:
             potential_total = unpack(boot_sector[32:36])
         self.boot |= {"total_sectors": potential_total}
         self.boot |= dict(
@@ -105,17 +105,17 @@ class Fat:
             "bytes_per_cluster": self.boot["bytes_per_sector"]
             * self.boot["sectors_per_cluster"]
         }
-        self.boot |= {"fat0_sector_start": self.boot["reserved_sectors"] + 1}
+        self.boot |= {"fat0_sector_start": self.boot["reserved_sectors"]}
         self.boot |= {
             "fat0_sector_end": self.boot["fat0_sector_start"]
-            * self.boot["sectors_per_fat"]
+            + self.boot["sectors_per_fat"] - 1
         }
+        assert self.boot["fat0_sector_start"] <= self.boot["fat0_sector_end"]
         self.boot |= {
-            "data_start": self.boot["fat0_sector_start"]
-            * self.boot["sectors_per_fat"]
-            * self.boot["number_of_fats"]
+            "data_start": self.boot["fat0_sector_end"] + self.boot["sectors_per_fat"] + 1
         }
-        self.boot |= {"data_end": potential_total}
+        self.boot |= {"data_end": potential_total - 1}
+        assert self.boot["data_start"] < self.boot["data_end"]
         self.file.seek(
             self.boot["fat0_sector_start"] * self.boot["bytes_per_sector"]
         )
@@ -337,7 +337,8 @@ class Fat:
         returns:
             list[dict]: list of dictionaries, one dict per entry
         """
-        directory = self._retrieve_data(cluster, False)
+        breakpoint()
+        directory = self._retrieve_data(cluster, True)
         NO = frozenset({".", ".."})
         directory_entries = []
         for entry_num, dir_entry in enumerate(grouper(directory, 32)):
@@ -350,13 +351,13 @@ class Fat:
                 "name": hw4utils.parse_name(dir_entry),
                 "data": dir_entry[0] == 0xE5 or dir_entry[0] == 0x00,
             }
-            if answer["entry_type"] is "dir":
+            if answer["entry_type"] == "dir":
                 answer |= {
                     "content_cluster": unpack(
                         dir_entry[20:22] + dir_entry[26:28]
                     )
                 }
-            if answer["entry_type"] not in {"vol", "lfn", "dir"}:
+            elif answer["entry_type"] not in {"vol", "lfn", "dir"}:
                 content_sectors = self._get_sectors(
                     unpack(
                         bytes(bytearray(dir_entry[20:22]) + dir_entry[26:28])
@@ -373,6 +374,8 @@ class Fat:
                         ),
                     )
                 )
+            else:
+                pass
             directory_entries.append(answer)
         directory_entries.extend(
             chain.from_iterable(
