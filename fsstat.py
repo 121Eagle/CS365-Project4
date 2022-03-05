@@ -265,7 +265,7 @@ class Fat:
             str (or None if unallocated cluster): slack content (up to 32 bytes)
 
         """
-        all_file_data = self._retrieve_data(cluster)
+        all_file_data = bytearray(self._retrieve_data(cluster))
         lenth_of_file = len(all_file_data)
         if (all_file_data == 0):
             all_file_data.extend(self._retrieve_data(cluster, True))
@@ -335,8 +335,12 @@ class Fat:
                         answer |= {
                                     "filesize": 0,
                                     "content_sectors": content_sectors
-                                        )
-                                  }
+                                  } | dict(zip(
+                                      (
+                                          "content",
+                                          "slack"
+                                      ),
+                                      self._get_content(content_sectors)))
                     directory_entries.append(answer)
         directory_entries.extend(
                 chain.from_iterable(
