@@ -3,9 +3,9 @@
 import json
 import os
 import sys
-from typing import Optional, TypeVar, Any
 from collections.abc import Iterable
-from itertools import zip_longest, chain
+from itertools import chain, zip_longest
+from typing import Any, Optional, TypeVar
 
 import hw4utils
 
