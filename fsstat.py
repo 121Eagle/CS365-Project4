@@ -20,7 +20,7 @@ T = TypeVar("T")
 
 def grouper(iterable: Iterable[T], length: int = 4, fillvalue: Optional[T] = None) -> Iterable:
     args: list[Iterable[T]] = [iter(iterable)] * length
-    return zip_longest(*args)
+    return zip_longest(*args, fillvalue=fillvalue)
 
 
 class Fat:
@@ -174,7 +174,7 @@ class Fat:
         current_cluster = unpack(self.fat[number * 4 : number * 4 + 5])
         if current_cluster == 0:
             return cluster_list
-        while current_cluster <= 0xFFFFFF7:
+        while current_cluster <= 0xFFFFFF8:
             cluster_start = current_cluster * 4
             cluster_end = cluster_start + 5  # the ending value of a slice is
             # exclusive rather then inclusive
@@ -319,7 +319,6 @@ class Fat:
         returns:
             list[dict]: list of dictionaries, one dict per entry
         """
-        breakpoint()
         directory = self._retrieve_data(cluster, True)
         directory_entries = []
         for entry_num, dir_entry in enumerate(grouper(directory, 32)):
