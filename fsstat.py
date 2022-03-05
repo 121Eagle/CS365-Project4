@@ -265,7 +265,17 @@ class Fat:
             str (or None if unallocated cluster): slack content (up to 32 bytes)
 
         """
-        pass
+        all_file_data = self._retrieve_data(cluster)
+        lenth_of_file = len(all_file_data)
+        if (all_file_data == 0):
+            all_file_data.extend(self._retrieve_data(cluster, True))
+            slack = None
+        slack = all_file_data[-32:]
+        return (
+                all_file_data[0:min(128, filesize)],
+                slack
+               )
+
 
     def parse_dir(self, cluster: int, parent="") -> list[dict[str, Any]]:
         """Parse a directory cluster, returns a list of dictionaries, one dict per entry.
@@ -314,7 +324,19 @@ class Fat:
                     if answer["entry_type"] is "dir":
                         answer |= {"content_cluster": unpack(dir_entry[20:22] + dir_entry[26:28])}
                     if answer["entry_type"] not in {"vol", "lfn", "dir"}:
-                        pass
+                        content_sectors = self._get_sectors(
+                                unpack(
+                                    bytes(
+                                        bytearray(
+                                            dir_entry[20:22])
+                                        + dir_entry[26:28]
+                                        )
+                                    ))
+                        answer |= {
+                                    "filesize": 0,
+                                    "content_sectors": content_sectors
+                                        )
+                                  }
                     directory_entries.append(answer)
         directory_entries.extend(
                 chain.from_iterable(
