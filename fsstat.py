@@ -108,11 +108,14 @@ class Fat:
         self.boot |= {"fat0_sector_start": self.boot["reserved_sectors"]}
         self.boot |= {
             "fat0_sector_end": self.boot["fat0_sector_start"]
-            + self.boot["sectors_per_fat"] - 1
+            + self.boot["sectors_per_fat"]
+            - 1
         }
         assert self.boot["fat0_sector_start"] <= self.boot["fat0_sector_end"]
         self.boot |= {
-            "data_start": self.boot["fat0_sector_end"] + self.boot["sectors_per_fat"] + 1
+            "data_start": self.boot["fat0_sector_end"]
+            + self.boot["sectors_per_fat"]
+            + 1
         }
         self.boot |= {"data_end": potential_total - 1}
         assert self.boot["data_start"] < self.boot["data_end"]
@@ -296,8 +299,8 @@ class Fat:
 
         """
         all_file_data = bytearray(self._retrieve_data(cluster))
-        lenth_of_file = len(all_file_data)
-        if all_file_data == 0:
+        length_of_file = len(all_file_data)
+        if length_of_file == 0:
             all_file_data.extend(self._retrieve_data(cluster, True))
             slack = None
         slack = all_file_data[-32:]
