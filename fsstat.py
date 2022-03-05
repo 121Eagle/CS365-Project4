@@ -18,9 +18,7 @@ def unpack(data: bytes, signed=False, byteorder="little") -> int:
 T = TypeVar("T")
 
 
-def grouper(
-    iterable: Iterable[T], length: int = 4, fillvalue: Optional[T] = None
-) -> Iterable:
+def grouper(iterable: Iterable[T], length: int = 4, fillvalue: Optional[T] = None) -> Iterable:
     args: list[Iterable[T]] = [iter(iterable)] * length
     return zip_longest(*args)
 
@@ -102,27 +100,18 @@ class Fat:
             )
         )
         self.boot |= {
-            "bytes_per_cluster": self.boot["bytes_per_sector"]
-            * self.boot["sectors_per_cluster"]
+            "bytes_per_cluster": self.boot["bytes_per_sector"] * self.boot["sectors_per_cluster"]
         }
         self.boot |= {"fat0_sector_start": self.boot["reserved_sectors"]}
         self.boot |= {
-            "fat0_sector_end": self.boot["fat0_sector_start"]
-            + self.boot["sectors_per_fat"]
-            - 1
+            "fat0_sector_end": self.boot["fat0_sector_start"] + self.boot["sectors_per_fat"] - 1
         }
         assert self.boot["fat0_sector_start"] <= self.boot["fat0_sector_end"]
-        self.boot |= {
-            "data_start": self.boot["fat0_sector_end"]
-            + self.boot["sectors_per_fat"]
-            + 1
-        }
+        self.boot |= {"data_start": self.boot["fat0_sector_end"] + self.boot["sectors_per_fat"] + 1}
         self.boot |= {"data_end": potential_total - 1}
         assert self.boot["data_start"] < self.boot["data_end"]
         self.file.seek(self.boot["fat0_sector_start"] * self.boot["bytes_per_sector"])
-        self.fat = self.file.read(
-            self.boot["sectors_per_fat"] * self.boot["bytes_per_sector"]
-        )
+        self.fat = self.file.read(self.boot["sectors_per_fat"] * self.boot["bytes_per_sector"])
         self.file.seek(0)
 
     def info(self):
@@ -179,9 +168,7 @@ class Fat:
         returns:
             list[int]: list of sectors
         """
-        assert (
-            0 < (number * 4 + 4) < self.boot["sectors_per_fat"]
-        ), f"{number} exceeds FAT size"
+        assert 0 < (number * 4 + 4) < self.boot["sectors_per_fat"], f"{number} exceeds FAT size"
 
         cluster_list: list[int] = []
         current_cluster = unpack(self.fat[number * 4 : number * 4 + 5])
@@ -346,9 +333,7 @@ class Fat:
                 "data": dir_entry[0] == 0xE5 or dir_entry[0] == 0x00,
             }
             if answer["entry_type"] == "dir":
-                answer |= {
-                    "content_cluster": unpack(dir_entry[20:22] + dir_entry[26:28])
-                }
+                answer |= {"content_cluster": unpack(dir_entry[20:22] + dir_entry[26:28])}
             elif answer["entry_type"] not in {"vol", "lfn", "dir"}:
                 content_sectors = self._get_sectors(
                     unpack(bytes(bytearray(dir_entry[20:22]) + dir_entry[26:28]))
@@ -373,8 +358,7 @@ class Fat:
                         parent + "/" + directory["name"],
                     )
                     for directory in directory_entries
-                    if directory["entry_type"] == "dir"
-                    and directory["name"] not in self.DONT_RECUR
+                    if directory["entry_type"] == "dir" and directory["name"] not in self.DONT_RECUR
                 )
             )
         )
