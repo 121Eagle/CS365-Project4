@@ -243,8 +243,8 @@ class Fat:
         """
         seeks the current file to the sector requested
         """
-        BYTES_TO_SEEK = self.boot["bytes_per_sector"]
-        self.file.seek(sector * BYTES_TO_SEEK)
+        bytes_to_seek = self.boot["bytes_per_sector"]
+        self.file.seek(sector * bytes_to_seek)
 
     def _read(self, size: int) -> bytes:
         return self.file.read(size)
@@ -309,6 +309,8 @@ class Fat:
             slack.decode("ascii", "ignore"),
         )
 
+    DONT_RECUR = frozenset({".", ".."})
+
     def parse_dir(self, cluster: int, parent="") -> list[dict[str, Any]]:
         """Parse a directory cluster, returns a list of dictionaries, one dict per entry.
 
@@ -342,7 +344,6 @@ class Fat:
         """
         breakpoint()
         directory = self._retrieve_data(cluster, True)
-        NO = frozenset({".", ".."})
         directory_entries = []
         for entry_num, dir_entry in enumerate(grouper(directory, 32)):
             answer = {
@@ -389,7 +390,7 @@ class Fat:
                     )
                     for directory in directory_entries
                     if directory["entry_type"] == "dir"
-                    and directory["name"] not in NO
+                    and directory["name"] not in self.DONT_RECUR
                 )
             )
         )
