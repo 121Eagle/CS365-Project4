@@ -119,9 +119,7 @@ class Fat:
         }
         self.boot |= {"data_end": potential_total - 1}
         assert self.boot["data_start"] < self.boot["data_end"]
-        self.file.seek(
-            self.boot["fat0_sector_start"] * self.boot["bytes_per_sector"]
-        )
+        self.file.seek(self.boot["fat0_sector_start"] * self.boot["bytes_per_sector"])
         self.fat = self.file.read(
             self.boot["sectors_per_fat"] * self.boot["bytes_per_sector"]
         )
@@ -231,9 +229,7 @@ class Fat:
         data = bytearray()
         sectors = self._get_sectors(cluster)
         if ignore_unallocated and len(sectors) == 0:
-            sectors = list(
-                range(self._to_sector(cluster), self._end_sector(cluster))
-            )
+            sectors = list(range(self._to_sector(cluster), self._end_sector(cluster)))
         for sector in sectors:
             self._seek_to_sector(sector)
             data += self._read_sector()
@@ -268,19 +264,13 @@ class Fat:
         high_order = int.from_bytes(entry[20:22], "little") << 16
         low_order = int.from_bytes(entry[26:28], "little")
         content_cluster = high_order + low_order
-        max_cluster = (
-            self.boot["total_sectors"] / self.boot["sectors_per_cluster"]
-        )
+        max_cluster = self.boot["total_sectors"] / self.boot["sectors_per_cluster"]
         # if you send the wrong data to this function, you'll hit this error
-        assert (
-            content_cluster <= max_cluster
-        ), "Error: value exceeds cluster count."
+        assert content_cluster <= max_cluster, "Error: value exceeds cluster count."
 
         return content_cluster
 
-    def _get_content(
-        self, cluster: int, filesize: int
-    ) -> tuple[str, Optional[str]]:
+    def _get_content(self, cluster: int, filesize: int) -> tuple[str, Optional[str]]:
         """Return initial content of a directory entry and the intial content of its slack data if possible.
 
         Read the data for a file that begins with the stated cluster. Return the first 128 bytes
@@ -357,15 +347,11 @@ class Fat:
             }
             if answer["entry_type"] == "dir":
                 answer |= {
-                    "content_cluster": unpack(
-                        dir_entry[20:22] + dir_entry[26:28]
-                    )
+                    "content_cluster": unpack(dir_entry[20:22] + dir_entry[26:28])
                 }
             elif answer["entry_type"] not in {"vol", "lfn", "dir"}:
                 content_sectors = self._get_sectors(
-                    unpack(
-                        bytes(bytearray(dir_entry[20:22]) + dir_entry[26:28])
-                    )
+                    unpack(bytes(bytearray(dir_entry[20:22]) + dir_entry[26:28]))
                 )
                 answer |= {
                     "filesize": unpack(dir_entry[28:]),
@@ -373,9 +359,7 @@ class Fat:
                 } | dict(
                     zip(
                         ("content", "slack"),
-                        self._get_content(
-                            content_sectors[0], answer["filesize"]
-                        ),
+                        self._get_content(content_sectors[0], answer["filesize"]),
                     )
                 )
             else:
