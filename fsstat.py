@@ -170,19 +170,24 @@ class Fat:
         """
         assert 0 < (number * 4 + 4) < self.boot["sectors_per_fat"], f"{number} exceeds FAT size"
 
+        breakpoint()
         cluster_list: list[int] = []
-        if current_cluster == 0:
+        current_cluster = number
+        if unpack(self.fat[number * 4: number * 4 + 4]) == 0:
             return cluster_list
+        else:
+            cluster_list.extend(list(range(self._to_sector(current_cluster), self._end_sector(current_cluster) + 1)))
+            current_cluster = current_value
         while current_cluster <= 0xFFFFFF8:
             cluster_start = current_cluster * 4
-            cluster_end = cluster_start + 5  # the ending value of a slice is
+            cluster_end = cluster_start + 4  # the ending value of a slice is
             # exclusive rather then inclusive
             current_cluster = unpack(self.fat[cluster_start:cluster_end])
             cluster_list.extend(
                 list(
                     range(
                         self._to_sector(current_cluster),
-                        self._end_sector(current_cluster),
+                        self._end_sector(current_cluster) + 1
                     )
                 )
             )
@@ -215,7 +220,7 @@ class Fat:
         data = bytearray()
         sectors = self._get_sectors(cluster)
         if ignore_unallocated and len(sectors) == 0:
-            sectors = list(range(self._to_sector(cluster), self._end_sector(cluster)))
+            sectors = list(range(self._to_sector(cluster), self._end_sector(cluster) + 1))
         for sector in sectors:
             self._seek_to_sector(sector)
             data += self._read_sector()
@@ -226,13 +231,13 @@ class Fat:
         seeks the current file to the sector requested
         """
         bytes_to_seek = self.boot["bytes_per_sector"]
-        self.file.seek(sector * bytes_to_seek)
+        self.file.seek((sector - 1) * bytes_to_seek)
 
     def _read(self, size: int) -> bytes:
         return self.file.read(size)
 
-    def _read_sector(self, sectors: int = 1) -> bytes:
-        return self._read(sectors * self.boot["bytes_per_sector"])
+    def _read_sector(self) -> bytes:
+        return self._read(self.boot["bytes_per_sector"])
 
     def _get_first_cluster(self, entry: bytes) -> int:
         """Returns the first cluster of the content of a given directory entry
@@ -332,21 +337,17 @@ class Fat:
             }
             if answer["entry_type"] == "dir":
                 answer |= {"content_cluster": unpack(dir_entry[20:22] + dir_entry[26:28])}
-            elif answer["entry_type"] not in {"vol", "lfn", "dir"}:
-                content_sectors = self._get_sectors(
-                    unpack(bytes(bytearray(dir_entry[20:22]) + dir_entry[26:28]))
-                )
+            if answer["entry_type"] not in {"vol", "lfn", "dir"}:
+                content_sectors = self._get_first_cluster(dir_entry)
                 answer |= {
                     "filesize": unpack(dir_entry[28:]),
                     "content_sectors": content_sectors,
-                } | dict(
-                    zip(
-                        ("content", "slack"),
-                        self._get_content(content_sectors[0], answer["filesize"]),
-                    )
-                )
-            else:
-                pass
+                }
+                content, slack = self._get_content(
+                    content_sectors,
+                    answer["filesize"]
+                                                  )
+                answer |= {"content": content, "slack": slack}
             directory_entries.append(answer)
         directory_entries.extend(
             chain.from_iterable(
