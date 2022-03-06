@@ -170,7 +170,6 @@ class Fat:
         """
         assert 0 < (number * 4 + 4) < self.boot["sectors_per_fat"], f"{number} exceeds FAT size"
 
-        breakpoint()
         cluster_list: list[int] = []
         current_cluster = number
         current_value = unpack(self.fat[number * 4: number * 4 + 4])
