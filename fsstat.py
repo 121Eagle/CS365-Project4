@@ -171,7 +171,6 @@ class Fat:
         assert 0 < (number * 4 + 4) < self.boot["sectors_per_fat"], f"{number} exceeds FAT size"
 
         cluster_list: list[int] = []
-        current_cluster = unpack(self.fat[number * 4 : number * 4 + 5])
         if current_cluster == 0:
             return cluster_list
         while current_cluster <= 0xFFFFFF8:
