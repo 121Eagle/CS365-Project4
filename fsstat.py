@@ -173,7 +173,8 @@ class Fat:
         breakpoint()
         cluster_list: list[int] = []
         current_cluster = number
-        if unpack(self.fat[number * 4: number * 4 + 4]) == 0:
+        current_value = unpack(self.fat[number * 4: number * 4 + 4])
+        if current_value == 0:
             return cluster_list
         else:
             cluster_list.extend(list(range(self._to_sector(current_cluster), self._end_sector(current_cluster) + 1)))
