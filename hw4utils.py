@@ -18,7 +18,7 @@ def get_entry_type(int) -> str:
     """
     # We must check for lfn first.
     types = {0x0F: "lfn", 0x10: "dir", 0x08: "vol"}
-    for flag in types.keys():
+    for flag in types:
         if int & flag == flag:
             return types[flag]
     return hex(int)
