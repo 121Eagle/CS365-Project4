@@ -325,13 +325,13 @@ class Fat:
         """
         directory = self._retrieve_data(cluster, True)
         directory_entries = []
-        for entry_num, dir_entry in enumerate(grouper(directory, 32)):
+        for entry_num, dir_entry in enumerate(directory.split(maxsplit=32)):
             answer = {
                 "parent": parent,
                 "dir_cluster": cluster,
                 "entry_num": entry_num,
                 "dir_sectors": self._get_sectors(cluster),
-                "entry_type": hw4utils.get_entry_type(dir_entry),
+                "entry_type": hw4utils.get_entry_type(dir_entry[11]),
                 "name": hw4utils.parse_name(dir_entry),
                 "data": dir_entry[0] == 0xE5 or dir_entry[0] == 0x00,
             }
