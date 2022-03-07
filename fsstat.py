@@ -344,7 +344,7 @@ class Fat:
                 "deleted": dir_entry[0] == 0xE5 or dir_entry[0] == 0x00,
             }
             if answer["entry_type"] == "dir":
-                answer |= {"content_cluster": unpack(dir_entry[20:22] + dir_entry[26:28])}
+                answer |= {"content_cluster": self._get_first_cluster(dir_entry)}
             if answer["entry_type"] not in {"vol", "lfn", "dir"}:
                 content_sectors = self._get_first_cluster(dir_entry)
                 answer |= {
