@@ -333,7 +333,7 @@ class Fat:
         directory_entries = []
         for entry_num, dir_entry in enumerate([directory[n:n + 32]
                                                for n in
-                                               range(0, len(directory) - 32, 32)]):
+                                               range(0, len(directory), 32)]):
             answer = {
                 "parent": parent,
                 "dir_cluster": cluster,
@@ -341,7 +341,7 @@ class Fat:
                 "dir_sectors": self._get_sectors(cluster),
                 "entry_type": hw4utils.get_entry_type(dir_entry[11]),
                 "name": hw4utils.parse_name(dir_entry),
-                "data": dir_entry[0] == 0xE5 or dir_entry[0] == 0x00,
+                "deleted": dir_entry[0] == 0xE5 or dir_entry[0] == 0x00,
             }
             if answer["entry_type"] == "dir":
                 answer |= {"content_cluster": unpack(dir_entry[20:22] + dir_entry[26:28])}
