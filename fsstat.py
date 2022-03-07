@@ -349,7 +349,7 @@ class Fat:
                 content_sectors = self._get_first_cluster(dir_entry)
                 answer |= {
                     "filesize": unpack(dir_entry[28:]),
-                    "content_sectors": content_sectors,
+                    "content_sectors": self._get_sectors(content_sectors)
                 }
                 content, slack = self._get_content(
                     content_sectors,
@@ -357,18 +357,11 @@ class Fat:
                                                   )
                 answer |= {"content": content, "slack": slack}
             directory_entries.append(answer)
-        directory_entries.extend(
-            chain.from_iterable(
-                (
-                    self.parse_dir(
-                        directory["content_cluster"],
-                        parent + "/" + directory["name"],
-                    )
-                    for directory in directory_entries
-                    if directory["entry_type"] == "dir" and directory["name"] not in self.DONT_RECUR
-                )
-            )
-        )
+        for entry in directory_entries:
+            if entry["entry_type"] == "dir" and entry["name"] not in self.DONT_RECUR:
+                directory_entries.extend(self.parse_dir(
+                    entry["content_cluster"],
+                    parent + "/" + entry["name"]))
         return directory_entries
 
 
