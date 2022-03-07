@@ -237,7 +237,7 @@ class Fat:
         seeks the current file to the sector requested
         """
         bytes_to_seek = self.boot["bytes_per_sector"]
-        self.file.seek((sector - 1) * bytes_to_seek)
+        self.file.seek(sector * bytes_to_seek)
 
     def _read(self, size: int) -> bytes:
         return self.file.read(size)
@@ -339,7 +339,7 @@ class Fat:
                 "dir_cluster": cluster,
                 "entry_num": entry_num,
                 "dir_sectors": self._get_sectors(cluster),
-                "entry_type": hw4utils.get_entry_type(dir_entry[11]),
+                "entry_type": hw4utils.get_entry_type(unpack(dir_entry[11:12])),
                 "name": hw4utils.parse_name(dir_entry),
                 "deleted": dir_entry[0] == 0xE5 or dir_entry[0] == 0x00,
             }
