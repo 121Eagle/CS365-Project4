@@ -112,7 +112,6 @@ class Fat:
         assert self.boot["data_start"] < self.boot["data_end"]
         self.file.seek(self.boot["fat0_sector_start"] * self.boot["bytes_per_sector"])
         self.fat = self.file.read(self.boot["sectors_per_fat"] * self.boot["bytes_per_sector"])
-        self.file.seek(0)
 
     def info(self):
         """Print already-parsed information about the FAT filesystem as a json string"""
@@ -170,20 +169,27 @@ class Fat:
         """
         assert 0 < (number * 4 + 4) < self.boot["sectors_per_fat"], f"{number} exceeds FAT size"
 
-        cluster_list: list[int] = []
+        sector_list: list[int] = []
         current_cluster = number
         current_value = unpack(self.fat[number * 4: number * 4 + 4])
         if current_value == 0:
-            return cluster_list
+            return sector_list
         else:
-            cluster_list.extend(list(range(self._to_sector(current_cluster), self._end_sector(current_cluster) + 1)))
+            sector_list.extend(
+                    list(
+                        range(
+                            self._to_sector(current_cluster),
+                            self._end_sector(current_cluster) + 1
+                            )
+                        )
+                    )
             current_cluster = current_value
         while current_cluster <= 0xFFFFFF8:
             cluster_start = current_cluster * 4
             cluster_end = cluster_start + 4  # the ending value of a slice is
             # exclusive rather then inclusive
             current_cluster = unpack(self.fat[cluster_start:cluster_end])
-            cluster_list.extend(
+            sector_list.extend(
                 list(
                     range(
                         self._to_sector(current_cluster),
@@ -192,7 +198,7 @@ class Fat:
                 )
             )
 
-        return cluster_list
+        return sector_list
 
     def _retrieve_data(self, cluster: int, ignore_unallocated=False) -> bytes:
         """Read in the data for a given file allocation table entry number (i.e., the cluster number).
@@ -325,7 +331,9 @@ class Fat:
         """
         directory = self._retrieve_data(cluster, True)
         directory_entries = []
-        for entry_num, dir_entry in enumerate(directory.split(maxsplit=32)):
+        for entry_num, dir_entry in enumerate([directory[n:n + 32]
+                                               for n in
+                                               range(0, len(directory) - 32, 32)]):
             answer = {
                 "parent": parent,
                 "dir_cluster": cluster,
