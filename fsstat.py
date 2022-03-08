@@ -6,6 +6,7 @@ import sys
 from collections.abc import Iterable
 from itertools import chain, zip_longest
 from typing import Any, Optional, TypeVar
+from functools import cache
 
 import hw4utils
 
@@ -135,6 +136,7 @@ class Fat:
         for file in all_files:
             print(json.dumps(file))
 
+    @cache
     def _to_sector(self, cluster: int) -> int:
         """Convert a cluster number to a sector number
 
