@@ -359,9 +359,12 @@ class Fat:
             directory_entries.append(answer)
         for entry in directory_entries:
             if entry["entry_type"] == "dir" and entry["name"] not in self.DONT_RECUR:
-                directory_entries.extend(self.parse_dir(
-                    entry["content_cluster"],
-                    parent + "/" + entry["name"]))
+                subdirectories = self.parse_dir(
+                        entry["content_cluster"],
+                        parent + "/" + entry["name"]
+                        )
+                for directory in subdirectories:
+                    directory_entries.append(directory)
         return directory_entries
 
 
