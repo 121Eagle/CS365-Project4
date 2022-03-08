@@ -175,29 +175,17 @@ class Fat:
         if current_value == 0:
             return sector_list
         else:
-            sector_list.extend(
-                    list(
-                        range(
-                            self._to_sector(current_cluster),
-                            self._end_sector(current_cluster) + 1
-                            )
-                        )
-                    )
+            for sector in range(self._to_sector(current_cluster),
+                                self._end_sector(current_cluster) + 1):
+                sector_list.append(sector)
             current_cluster = current_value
         while current_cluster <= 0xFFFFFF8:
             cluster_start = current_cluster * 4
             cluster_end = cluster_start + 4  # the ending value of a slice is
             # exclusive rather then inclusive
             current_cluster = unpack(self.fat[cluster_start:cluster_end])
-            sector_list.extend(
-                list(
-                    range(
-                        self._to_sector(current_cluster),
-                        self._end_sector(current_cluster) + 1
-                    )
-                )
-            )
-
+            for sector in range(self._to_sector(current_cluster), self._end_sector(current_cluster) + 1):
+                sector_list.append(sector)
         return sector_list
 
     def _retrieve_data(self, cluster: int, ignore_unallocated=False) -> bytes:
@@ -359,6 +347,7 @@ class Fat:
             directory_entries.append(answer)
         for entry in directory_entries:
             if entry["entry_type"] == "dir" and entry["name"] not in self.DONT_RECUR:
+                breakpoint()
                 subdirectories = self.parse_dir(
                         entry["content_cluster"],
                         parent + "/" + entry["name"]
