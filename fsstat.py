@@ -370,8 +370,8 @@ class Fat:
                 subdirectories = self.parse_dir(
                     entry["content_cluster"], parent + "/" + entry["name"]
                 )
-                for directory in subdirectories:
-                    directory_entries.append(directory)
+                for subdirectory in subdirectories:
+                    directory_entries.append(subdirectory)
         return directory_entries
 
 
