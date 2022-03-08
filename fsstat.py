@@ -331,9 +331,9 @@ class Fat:
         """
         directory = self._retrieve_data(cluster, True)
         directory_entries = []
-        for entry_num, dir_entry in enumerate([directory[n:n + 32]
+        for entry_num, dir_entry in enumerate((directory[n:n + 32]
                                                for n in
-                                               range(0, len(directory), 32)]):
+                                               range(0, len(directory), 32))):
             answer = {
                 "parent": parent,
                 "dir_cluster": cluster,
