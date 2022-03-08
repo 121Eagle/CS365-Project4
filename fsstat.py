@@ -348,7 +348,7 @@ class Fat:
                 "parent": parent,
                 "dir_cluster": cluster,
                 "entry_num": entry_num,
-                "dir_sectors": dir_sectors
+                "dir_sectors": dir_sectors,
                 "entry_type": hw4utils.get_entry_type(unpack(dir_entry[11:12])),
                 "name": hw4utils.parse_name(dir_entry),
                 "deleted": dir_entry[0] == 0xE5 or dir_entry[0] == 0x00,
