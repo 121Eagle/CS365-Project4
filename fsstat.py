@@ -144,7 +144,7 @@ class Fat:
         returns:
             int: sector number
         """
-        return self._to_sector(cluster) + (self._sectors_per_cluster - 1)
+        return self._to_sector(cluster) + self._sectors_per_cluster
 
     @property
     def _sectors_per_cluster(self) -> int:
