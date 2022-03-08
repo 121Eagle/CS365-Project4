@@ -186,12 +186,13 @@ class Fat:
 
         sector_list: list[int] = []
         current_cluster = number
+        breakpoint()
         current_value = unpack(self.fat[number * 4 : number * 4 + 4])
         if current_value == 0:
             return sector_list
         else:
             for sector in range(
-                self._to_sector(current_cluster), self._end_sector(current_cluster) + 1
+                self._to_sector(current_cluster), self._end_sector(current_cluster)
             ):
                 sector_list.append(sector)
             current_cluster = current_value
@@ -338,6 +339,7 @@ class Fat:
             list[dict]: list of dictionaries, one dict per entry
         """
         directory = self._retrieve_data(cluster, True)
+        dir_sectors = self._get_sectors(cluster)
         directory_entries = []
         for entry_num, dir_entry in enumerate(
             (directory[n : n + 32] for n in range(0, len(directory), 32))
@@ -346,7 +348,7 @@ class Fat:
                 "parent": parent,
                 "dir_cluster": cluster,
                 "entry_num": entry_num,
-                "dir_sectors": self._get_sectors(cluster),
+                "dir_sectors": dir_sectors
                 "entry_type": hw4utils.get_entry_type(unpack(dir_entry[11:12])),
                 "name": hw4utils.parse_name(dir_entry),
                 "deleted": dir_entry[0] == 0xE5 or dir_entry[0] == 0x00,
