@@ -18,7 +18,9 @@ def unpack(data: bytes, signed=False, byteorder="little") -> int:
 T = TypeVar("T")
 
 
-def grouper(iterable: Iterable[T], length: int = 4, fillvalue: Optional[T] = None) -> Iterable:
+def grouper(
+    iterable: Iterable[T], length: int = 4, fillvalue: Optional[T] = None
+) -> Iterable:
     args: list[Iterable[T]] = [iter(iterable)] * length
     return zip_longest(*args, fillvalue=fillvalue)
 
@@ -100,18 +102,27 @@ class Fat:
             )
         )
         self.boot |= {
-            "bytes_per_cluster": self.boot["bytes_per_sector"] * self.boot["sectors_per_cluster"]
+            "bytes_per_cluster": self.boot["bytes_per_sector"]
+            * self.boot["sectors_per_cluster"]
         }
         self.boot |= {"fat0_sector_start": self.boot["reserved_sectors"]}
         self.boot |= {
-            "fat0_sector_end": self.boot["fat0_sector_start"] + self.boot["sectors_per_fat"] - 1
+            "fat0_sector_end": self.boot["fat0_sector_start"]
+            + self.boot["sectors_per_fat"]
+            - 1
         }
         assert self.boot["fat0_sector_start"] <= self.boot["fat0_sector_end"]
-        self.boot |= {"data_start": self.boot["fat0_sector_end"] + self.boot["sectors_per_fat"] + 1}
+        self.boot |= {
+            "data_start": self.boot["fat0_sector_end"]
+            + self.boot["sectors_per_fat"]
+            + 1
+        }
         self.boot |= {"data_end": potential_total - 1}
         assert self.boot["data_start"] < self.boot["data_end"]
         self.file.seek(self.boot["fat0_sector_start"] * self.boot["bytes_per_sector"])
-        self.fat = self.file.read(self.boot["sectors_per_fat"] * self.boot["bytes_per_sector"])
+        self.fat = self.file.read(
+            self.boot["sectors_per_fat"] * self.boot["bytes_per_sector"]
+        )
 
     def info(self):
         """Print already-parsed information about the FAT filesystem as a json string"""
@@ -167,16 +178,19 @@ class Fat:
         returns:
             list[int]: list of sectors
         """
-        assert 0 < (number * 4 + 4) < self.boot["sectors_per_fat"], f"{number} exceeds FAT size"
+        assert (
+            0 < (number * 4 + 4) < self.boot["sectors_per_fat"]
+        ), f"{number} exceeds FAT size"
 
         sector_list: list[int] = []
         current_cluster = number
-        current_value = unpack(self.fat[number * 4: number * 4 + 4])
+        current_value = unpack(self.fat[number * 4 : number * 4 + 4])
         if current_value == 0:
             return sector_list
         else:
-            for sector in range(self._to_sector(current_cluster),
-                                self._end_sector(current_cluster) + 1):
+            for sector in range(
+                self._to_sector(current_cluster), self._end_sector(current_cluster) + 1
+            ):
                 sector_list.append(sector)
             current_cluster = current_value
         while current_cluster <= 0xFFFFFF8:
@@ -184,7 +198,9 @@ class Fat:
             cluster_end = cluster_start + 4  # the ending value of a slice is
             # exclusive rather then inclusive
             current_cluster = unpack(self.fat[cluster_start:cluster_end])
-            for sector in range(self._to_sector(current_cluster), self._end_sector(current_cluster) + 1):
+            for sector in range(
+                self._to_sector(current_cluster), self._end_sector(current_cluster) + 1
+            ):
                 sector_list.append(sector)
         return sector_list
 
@@ -214,7 +230,9 @@ class Fat:
         data = bytearray()
         sectors = self._get_sectors(cluster)
         if ignore_unallocated and len(sectors) == 0:
-            sectors = list(range(self._to_sector(cluster), self._end_sector(cluster) + 1))
+            sectors = list(
+                range(self._to_sector(cluster), self._end_sector(cluster) + 1)
+            )
         for sector in sectors:
             self._seek_to_sector(sector)
             data += self._read_sector()
@@ -319,9 +337,9 @@ class Fat:
         """
         directory = self._retrieve_data(cluster, True)
         directory_entries = []
-        for entry_num, dir_entry in enumerate((directory[n:n + 32]
-                                               for n in
-                                               range(0, len(directory), 32))):
+        for entry_num, dir_entry in enumerate(
+            (directory[n : n + 32] for n in range(0, len(directory), 32))
+        ):
             answer = {
                 "parent": parent,
                 "dir_cluster": cluster,
@@ -337,21 +355,17 @@ class Fat:
                 content_sectors = self._get_first_cluster(dir_entry)
                 answer |= {
                     "filesize": unpack(dir_entry[28:]),
-                    "content_sectors": self._get_sectors(content_sectors)
+                    "content_sectors": self._get_sectors(content_sectors),
                 }
-                content, slack = self._get_content(
-                    content_sectors,
-                    answer["filesize"]
-                                                  )
+                content, slack = self._get_content(content_sectors, answer["filesize"])
                 answer |= {"content": content, "slack": slack}
             directory_entries.append(answer)
         for entry in directory_entries:
             if entry["entry_type"] == "dir" and entry["name"] not in self.DONT_RECUR:
                 breakpoint()
                 subdirectories = self.parse_dir(
-                        entry["content_cluster"],
-                        parent + "/" + entry["name"]
-                        )
+                    entry["content_cluster"], parent + "/" + entry["name"]
+                )
                 for directory in subdirectories:
                     directory_entries.append(directory)
         return directory_entries
