@@ -131,7 +131,7 @@ class Fat:
         returns:
             int: sector number
         """
-        sector_offset = (cluster - 2) * self.boot["sectors_per_cluster"]
+        sector_offset = (cluster - 2) * self._sectors_per_cluster
         return sector_offset + self.boot["data_start"]
 
     def _end_sector(self, cluster: int) -> int:
@@ -152,6 +152,13 @@ class Fat:
         So I am making this a property, fight me on this
         """
         return self.boot["sectors_per_cluster"]
+
+    @property
+    def _sector_of_cluster_2(self) -> int:
+        """
+        returns the start of sector 2 in the data area
+        """
+        return self.boot["data_start"]
 
     def _get_sectors(self, number: int) -> list[int]:
         """Return list of sectors for a given table entry number
