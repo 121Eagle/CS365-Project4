@@ -281,7 +281,7 @@ class Fat:
         all_file_data = bytearray(self._retrieve_data(cluster))
         if filesize == 0:
             return (all_file_data[: min(128, filesize)].decode("ascii", "ignore"), None)
-        slack = all_file_data[-32:]
+        slack = all_file_data[filesize:filesize + 32]
         return (
             all_file_data[0 : min(128, filesize)].decode("ascii", "ignore"),
             slack.decode("ascii", "ignore"),
