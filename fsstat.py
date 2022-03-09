@@ -220,7 +220,7 @@ class Fat:
         if ignore_unallocated and len(sectors) == 0:
             for sector in range(self._to_sector(cluster), self._end_sector(cluster)):
                 sectors.append(sector)
-        for sector in sectors:
+        for sector in sectors[:-1]:
             self._seek_to_sector(sector)
             data += self._read_sector()
         return bytes(data)
