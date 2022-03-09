@@ -186,7 +186,6 @@ class Fat:
 
         sector_list: list[int] = []
         current_cluster = number
-        breakpoint()
         current_value = unpack(self.fat[number * 4 : number * 4 + 4])
         if current_value == 0:
             return sector_list
@@ -295,10 +294,9 @@ class Fat:
 
         """
         all_file_data = bytearray(self._retrieve_data(cluster))
-        length_of_file = len(all_file_data)
-        if length_of_file == 0:
-            all_file_data.extend(self._retrieve_data(cluster, True))
-            slack = None
+        if filesize == 0:
+            return (all_file_data[:min(128, filesize)].decode("ascii", "ignore"),
+                    None)
         slack = all_file_data[-32:]
         return (
             all_file_data[0 : min(128, filesize)].decode("ascii", "ignore"),
@@ -356,17 +354,16 @@ class Fat:
             if answer["entry_type"] == "dir":
                 answer |= {"content_cluster": self._get_first_cluster(dir_entry)}
             if answer["entry_type"] not in {"vol", "lfn", "dir"}:
-                content_sectors = self._get_first_cluster(dir_entry)
                 answer |= {
                     "filesize": unpack(dir_entry[28:]),
-                    "content_sectors": self._get_sectors(content_sectors),
+                    "content_sectors": self._get_sectors(
+                        self._get_first_cluster(dir_entry))
                 }
-                content, slack = self._get_content(content_sectors, answer["filesize"])
+                content, slack = self._get_content(answer["content_sectors"], answer["filesize"])
                 answer |= {"content": content, "slack": slack}
             directory_entries.append(answer)
         for entry in directory_entries:
             if entry["entry_type"] == "dir" and entry["name"] not in self.DONT_RECUR:
-                breakpoint()
                 subdirectories = self.parse_dir(
                     entry["content_cluster"], parent + "/" + entry["name"]
                 )
