@@ -175,14 +175,14 @@ class Fat:
         if current_cluster == 0:
             return sector_list
         while current_cluster <= 0xFFFFFF8:
-            cluster_start = current_cluster * 4
-            cluster_end = cluster_start + 4  # the ending value of a slice is
-            # exclusive rather then inclusive
-            current_cluster = unpack(self.fat[cluster_start:cluster_end])
             for sector in range(
                 self._to_sector(current_cluster), self._end_sector(current_cluster)
             ):
                 sector_list.append(sector)
+            cluster_start = current_cluster * 4
+            cluster_end = cluster_start + 4  # the ending value of a slice is
+            # exclusive rather then inclusive
+            current_cluster = unpack(self.fat[cluster_start:cluster_end])
         return sector_list
 
     def _retrieve_data(self, cluster: int, ignore_unallocated=False) -> bytes:
