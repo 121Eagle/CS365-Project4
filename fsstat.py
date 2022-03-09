@@ -330,11 +330,11 @@ class Fat:
             }
             if answer["entry_type"] == "dir":
                 answer |= {"content_cluster": self._get_first_cluster(dir_entry)}
-                if entry["name"] not in self.DONT_RECUR:
+                if answer["name"] not in self.DONT_RECUR:
                     for sub_file in self.parse_dir(
-                            entry["content_cluster"], parent + "/" + entry["name"]
-                            )
-                    directory_entries.append(sub_file)
+                            answer["content_cluster"], parent + "/" + answer["name"]
+                            ):
+                        directory_entries.append(sub_file)
             if answer["entry_type"] not in {"vol", "lfn", "dir"}:
                 breakpoint()
                 content_cluster = self._get_first_cluster(dir_entry)
