@@ -3,7 +3,6 @@
 import json
 import os
 import sys
-from functools import cache
 from typing import Any, Optional
 
 import hw4utils
