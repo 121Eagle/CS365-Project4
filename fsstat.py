@@ -143,7 +143,7 @@ class Fat:
         returns:
             int: sector number
         """
-        return self._to_sector(cluster) + self._sectors_per_cluster
+        return self._to_sector(cluster) + (self._sectors_per_cluster - 1)
 
     @property
     def _sectors_per_cluster(self) -> int:
@@ -183,7 +183,7 @@ class Fat:
             return [self._to_sector(current_cluster)]
         while current_cluster <= 0xFFFFFF8:
             for sector in range(
-                self._to_sector(current_cluster), self._end_sector(current_cluster)
+                self._to_sector(current_cluster), self._end_sector(current_cluster) + 1
             ):
                 sector_list.append(sector)
             cluster_start = current_cluster * 4
@@ -343,7 +343,6 @@ class Fat:
                             ):
                         directory_entries.append(sub_file)
             if answer["entry_type"] not in {"vol", "lfn", "dir"}:
-                breakpoint()
                 content_cluster = self._get_first_cluster(dir_entry)
                 answer |= {
                     "filesize": unpack(dir_entry[28:]),
