@@ -3,10 +3,8 @@
 import json
 import os
 import sys
-from collections.abc import Iterable
-from itertools import chain, zip_longest
-from typing import Any, Optional, TypeVar
 from functools import cache
+from typing import Any, Optional
 
 import hw4utils
 
@@ -14,16 +12,6 @@ import hw4utils
 def unpack(data: bytes, signed=False, byteorder="little") -> int:
     """Unpack a single value from bytes"""
     return int.from_bytes(data, byteorder=byteorder, signed=signed)
-
-
-T = TypeVar("T")
-
-
-def grouper(
-    iterable: Iterable[T], length: int = 4, fillvalue: Optional[T] = None
-) -> Iterable:
-    args: list[Iterable[T]] = [iter(iterable)] * length
-    return zip_longest(*args, fillvalue=fillvalue)
 
 
 class Fat:
@@ -136,7 +124,6 @@ class Fat:
         for file in all_files:
             print(json.dumps(file))
 
-    @cache
     def _to_sector(self, cluster: int) -> int:
         """Convert a cluster number to a sector number
 
@@ -186,22 +173,15 @@ class Fat:
 
         sector_list: list[int] = []
         current_cluster = number
-        current_value = unpack(self.fat[number * 4 : number * 4 + 4])
-        if current_value == 0:
+        if current_cluster == 0:
             return sector_list
-        else:
-            for sector in range(
-                self._to_sector(current_cluster), self._end_sector(current_cluster)
-            ):
-                sector_list.append(sector)
-            current_cluster = current_value
         while current_cluster <= 0xFFFFFF8:
             cluster_start = current_cluster * 4
             cluster_end = cluster_start + 4  # the ending value of a slice is
             # exclusive rather then inclusive
             current_cluster = unpack(self.fat[cluster_start:cluster_end])
             for sector in range(
-                self._to_sector(current_cluster), self._end_sector(current_cluster) + 1
+                self._to_sector(current_cluster), self._end_sector(current_cluster)
             ):
                 sector_list.append(sector)
         return sector_list
@@ -232,9 +212,8 @@ class Fat:
         data = bytearray()
         sectors = self._get_sectors(cluster)
         if ignore_unallocated and len(sectors) == 0:
-            sectors = list(
-                range(self._to_sector(cluster), self._end_sector(cluster) + 1)
-            )
+            for sector in range(self._to_sector(cluster), self._end_sector(cluster)):
+                sectors.append(sector)
         for sector in sectors:
             self._seek_to_sector(sector)
             data += self._read_sector()
@@ -295,8 +274,7 @@ class Fat:
         """
         all_file_data = bytearray(self._retrieve_data(cluster))
         if filesize == 0:
-            return (all_file_data[:min(128, filesize)].decode("ascii", "ignore"),
-                    None)
+            return (all_file_data[: min(128, filesize)].decode("ascii", "ignore"), None)
         slack = all_file_data[-32:]
         return (
             all_file_data[0 : min(128, filesize)].decode("ascii", "ignore"),
@@ -336,7 +314,7 @@ class Fat:
         returns:
             list[dict]: list of dictionaries, one dict per entry
         """
-        directory = self._retrieve_data(cluster, True)
+        directory = self._retrieve_data(cluster)
         dir_sectors = self._get_sectors(cluster)
         directory_entries = []
         for entry_num, dir_entry in enumerate(
@@ -357,9 +335,12 @@ class Fat:
                 answer |= {
                     "filesize": unpack(dir_entry[28:]),
                     "content_sectors": self._get_sectors(
-                        self._get_first_cluster(dir_entry))
+                        self._get_first_cluster(dir_entry)
+                    ),
                 }
-                content, slack = self._get_content(answer["content_sectors"], answer["filesize"])
+                content, slack = self._get_content(
+                    answer["content_sectors"], answer["filesize"]
+                )
                 answer |= {"content": content, "slack": slack}
             directory_entries.append(answer)
         for entry in directory_entries:
