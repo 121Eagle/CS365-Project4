@@ -180,7 +180,7 @@ class Fat:
         sector_list: list[int] = []
         current_cluster = number
         if current_cluster == 0:
-            return sector_list
+            return [self._to_sector(current_cluster)]
         while current_cluster <= 0xFFFFFF8:
             for sector in range(
                 self._to_sector(current_cluster), self._end_sector(current_cluster)
