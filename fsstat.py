@@ -282,7 +282,7 @@ class Fat:
         if filesize == 0:
             return (str(all_file_data[: min(128, filesize)]), None)
         slack = all_file_data[filesize : filesize + 32]
-        return tuple(map(str, (all_file_data[:min(128, filesize)], slack)))
+        return (str(all_file_data[:min(128, filesize)]), str(slack))
 
     DONT_RECUR = frozenset({".", ".."})
 
