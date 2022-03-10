@@ -292,7 +292,7 @@ class Fat:
         BYTES_OF_NULL = bytes(32)
         stripped_value = data
         while BYTES_OF_NULL in bytes(stripped_value):
-            stripped_value = stripped_value[:stripped_value.find(BYTES_OF_NULL)]
+            stripped_value = stripped_value[: stripped_value.find(BYTES_OF_NULL)]
         appended_value = bytearray(stripped_value)
         length_still_needed = modulo - (len(appended_value) % modulo)
         # to get the amount of null bytes we still need to append
@@ -333,9 +333,7 @@ class Fat:
         returns:
             list[dict]: list of dictionaries, one dict per entry
         """
-        directory = self.byte_formatting(
-            self._retrieve_data(cluster)
-        )
+        directory = self.byte_formatting(self._retrieve_data(cluster))
         dir_sectors = self._get_sectors(cluster)
         directory_entries = []
         for entry_num, dir_entry in enumerate(
