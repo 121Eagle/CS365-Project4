@@ -320,7 +320,7 @@ class Fat:
         returns:
             list[dict]: list of dictionaries, one dict per entry
         """
-        directory = self._retrieve_data(cluster)
+        directory = self._retrieve_data(cluster).strip()
         dir_sectors = self._get_sectors(cluster)
         directory_entries = []
         for entry_num, dir_entry in enumerate(
