@@ -143,7 +143,7 @@ class Fat:
         returns:
             int: sector number
         """
-        return self._to_sector(cluster) + (self._sectors_per_cluster - 1)
+        return self._to_sector(cluster) + self._sectors_per_cluster
 
     @property
     def _sectors_per_cluster(self) -> int:
@@ -183,7 +183,7 @@ class Fat:
             return [self._to_sector(current_cluster)]
         while current_cluster <= 0xFFFFFF8:
             for sector in range(
-                self._to_sector(current_cluster), self._end_sector(current_cluster) + 1
+                self._to_sector(current_cluster), self._end_sector(current_cluster)
             ):
                 sector_list.append(sector)
             cluster_start = current_cluster * 4
