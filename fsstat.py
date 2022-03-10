@@ -282,7 +282,7 @@ class Fat:
         if filesize == 0:
             return (str(all_file_data[: min(128, filesize)]), None)
         slack = all_file_data[filesize : filesize + 32]
-        return (str(all_file_data[:min(128, filesize)]), str(slack))
+        return (str(all_file_data[: min(128, filesize)]), str(slack))
 
     DONT_RECUR = frozenset({".", ".."})
 
@@ -361,7 +361,9 @@ class Fat:
                     self._get_first_cluster(dir_entry), answer["filesize"]
                 )
                 answer |= {
-                    "content": str(self.byte_formatting(bytes(content), answer["filesize"])),
+                    "content": str(
+                        self.byte_formatting(bytes(content), answer["filesize"])
+                    ),
                     "slack": str(slack),
                 }
             directory_entries.append(answer)
