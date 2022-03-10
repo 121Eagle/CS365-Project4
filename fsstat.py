@@ -350,7 +350,7 @@ class Fat:
                     ),
                 }
                 content, slack = self._get_content(
-                    self._get_first_cluster(dir_entry), answer["filesize"]
+                    answer["content_sectors"][0], answer["filesize"]
                 )
                 answer |= {"content": content, "slack": slack}
             directory_entries.append(answer)
