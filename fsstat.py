@@ -281,7 +281,7 @@ class Fat:
         all_file_data = bytearray(self._retrieve_data(cluster))
         if filesize == 0:
             return (all_file_data[: min(128, filesize)].decode("ascii", "ignore"), None)
-        slack = all_file_data[filesize:filesize + 32]
+        slack = all_file_data[filesize : filesize + 32]
         return (
             all_file_data[0 : min(128, filesize)].decode("ascii", "ignore"),
             slack.decode("ascii", "ignore"),
@@ -339,8 +339,8 @@ class Fat:
                 answer |= {"content_cluster": self._get_first_cluster(dir_entry)}
                 if answer["name"] not in self.DONT_RECUR:
                     for sub_file in self.parse_dir(
-                            answer["content_cluster"], parent + "/" + answer["name"]
-                            ):
+                        answer["content_cluster"], parent + "/" + answer["name"]
+                    ):
                         directory_entries.append(sub_file)
             if answer["entry_type"] not in {"vol", "lfn", "dir"}:
                 answer |= {
