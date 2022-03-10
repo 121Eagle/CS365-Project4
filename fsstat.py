@@ -291,7 +291,7 @@ class Fat:
     def byte_formatting(cls, data: bytes, modulo: int = 32) -> bytes:
         BYTES_OF_NULL = bytes(32)
         stripped_value = data
-        while BYTES_OF_NULL in stripped_value:
+        while BYTES_OF_NULL in bytes(stripped_value):
             stripped_value = stripped_value[:stripped_value.find(BYTES_OF_NULL)]
         appended_value = bytearray(stripped_value)
         length_still_needed = modulo - (len(appended_value) % modulo)
@@ -334,7 +334,7 @@ class Fat:
             list[dict]: list of dictionaries, one dict per entry
         """
         directory = self.byte_formatting(
-            self._retrieve_data(cluster).decode(errors="ignore")
+            self._retrieve_data(cluster)
         )
         dir_sectors = self._get_sectors(cluster)
         directory_entries = []
