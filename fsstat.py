@@ -362,7 +362,7 @@ class Fat:
                 )
                 answer |= {
                     "content": str(
-                        self.byte_formatting(bytes(content), answer["filesize"])
+                        self.byte_formatting(content.encode("ascii", "ignore"), answer["filesize"])
                     ),
                     "slack": str(slack),
                 }
