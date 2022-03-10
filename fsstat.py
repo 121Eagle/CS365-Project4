@@ -278,11 +278,11 @@ class Fat:
             str (or None if unallocated cluster): slack content (up to 32 bytes)
 
         """
-        all_file_data = self._retrieve_data(cluster)
+        all_file_data = self._retrieve_data(cluster).decode(errors="ignore")
         if filesize == 0:
-            return (str(all_file_data[: min(128, filesize)]), None)
+            return (all_file_data[: min(128, filesize)], None)
         slack = all_file_data[filesize : filesize + 32]
-        return (str(all_file_data[: min(128, filesize)]), str(slack))
+        return (all_file_data[: min(128, filesize)], slack)
 
     DONT_RECUR = frozenset({".", ".."})
 
