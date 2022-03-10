@@ -283,8 +283,8 @@ class Fat:
             return (all_file_data[: min(128, filesize)], None)
         slack = all_file_data[filesize:filesize + 32]
         return (
-            all_file_data[0 : min(128, filesize)],
-            slack
+            all_file_data[0 : min(128, filesize)].decode("ascii","ignore"),
+            slack.decode("ascii", "ignore")
         )
 
     DONT_RECUR = frozenset({".", ".."})
@@ -354,17 +354,19 @@ class Fat:
                     ):
                         directory_entries.append(sub_file)
             if answer["entry_type"] not in {"vol", "lfn", "dir"}:
-                filesize = unpack(dir_entry[28:])
-                cluster = self._get_first_cluster(dir_entry)
                 answer |= {
+<<<<<<< HEAD
                     "content_clusters": cluster,
                     "filesize": filesize,
+=======
+                    "filesize": unpack(dir_entry[28:]),
+>>>>>>> parent of 5236319 (Trying the thing that always brakes thing again, but let's see how it)
                     "content_sectors": self._get_sectors(
-                        cluster
-                    )
+                        self._get_first_cluster(dir_entry)
+                    ),
                 }
                 content, slack = self._get_content(
-                    cluster, filesize
+                    answer["content_sectors"][0], answer["filesize"]
                 )
                 answer |= {"content": content, "slack": slack}
             directory_entries.append(answer)
