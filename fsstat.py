@@ -283,8 +283,8 @@ class Fat:
             return (all_file_data[: min(128, filesize)], None)
         slack = all_file_data[filesize : filesize + 32]
         return (
-            all_file_data[0 : min(128, filesize)].decode("ascii", "ignore"),
-            slack.decode("ascii", "ignore"),
+            all_file_data[0 : min(128, filesize)],
+            slack
         )
 
     DONT_RECUR = frozenset({".", ".."})
@@ -354,6 +354,7 @@ class Fat:
                     ):
                         directory_entries.append(sub_file)
             if answer["entry_type"] not in {"vol", "lfn", "dir"}:
+                breakpoint()
                 answer |= {
                     "filesize": unpack(dir_entry[28:]),
                     "content_sectors": self._get_sectors(
