@@ -343,14 +343,16 @@ class Fat:
                     ):
                         directory_entries.append(sub_file)
             if answer["entry_type"] not in {"vol", "lfn", "dir"}:
+                size = unpack(dir_entry[28:32])
+                content_cluster = self._get_first_cluster(dir_entry)
                 answer |= {
-                    "filesize": unpack(dir_entry[28:]),
+                    "filesize": size,
                     "content_sectors": self._get_sectors(
-                        self._get_first_cluster(dir_entry)
+                        content_cluster
                     ),
                 }
                 content, slack = self._get_content(
-                    answer["content_sectors"][0], answer["filesize"]
+                    content_cluster, size
                 )
                 answer |= {"content": content, "slack": slack}
             directory_entries.append(answer)
