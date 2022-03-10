@@ -288,7 +288,7 @@ class Fat:
 
     @classmethod
     def byte_formatting(cls, data: bytes, modulo: int = 32) -> bytes:
-        stripped_value = bytearray(data.rstrip(b"\x00"))
+        stripped_value = bytearray(data.rstrip("\x00"))
         length_still_needed = modulo - (len(stripped_value) % modulo)
         # to get the amount of null bytes we still need to append
         # take the length of what we have stripped, and modulate it with
@@ -328,7 +328,9 @@ class Fat:
         returns:
             list[dict]: list of dictionaries, one dict per entry
         """
-        directory = self.byte_formatting(self._retrieve_data(cluster).decode(errors="ignore"))
+        directory = self.byte_formatting(
+            self._retrieve_data(cluster).decode(errors="ignore")
+        )
         dir_sectors = self._get_sectors(cluster)
         directory_entries = []
         for entry_num, dir_entry in enumerate(
@@ -362,7 +364,9 @@ class Fat:
                 )
                 answer |= {
                     "content": str(
-                        self.byte_formatting(content.encode(errors="ignore"), answer["filesize"])
+                        self.byte_formatting(
+                            content.encode(errors="ignore"), answer["filesize"]
+                        )
                     ),
                     "slack": str(slack),
                 }
