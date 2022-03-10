@@ -362,7 +362,7 @@ class Fat:
                 )
                 answer |= {
                     "content": str(self.byte_formatting(content)),
-                    "slack": slack,
+                    "slack": str(slack),
                 }
             directory_entries.append(answer)
         return directory_entries
