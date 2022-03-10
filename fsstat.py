@@ -289,10 +289,10 @@ class Fat:
 
     @classmethod
     def byte_formatting(cls, data: bytes, modulo: int = 32) -> bytes:
-        32_BYTES_OF_NULL = bytes(32)
+        BYTES_OF_NULL = bytes(32)
         stripped_value = data
-        while stripped_value.endswith(32_BYTES_OF_NULL):
-            stripped_value.removesuffix(32_BYTES_OF_NULL)
+        while BYTES_OF_NULL in stripped_value:
+            stripped_value = stripped_value[:stripped_value.find(BYTES_OF_NULL)]
         appended_value = bytearray(stripped_value)
         length_still_needed = modulo - (len(appended_value) % modulo)
         # to get the amount of null bytes we still need to append
