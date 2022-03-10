@@ -357,6 +357,7 @@ class Fat:
                 filesize = unpack(dir_entry[28:])
                 cluster = self._get_first_cluster(dir_entry)
                 answer |= {
+                    "content_clusters": cluster,
                     "filesize": filesize,
                     "content_sectors": self._get_sectors(
                         cluster
