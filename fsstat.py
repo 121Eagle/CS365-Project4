@@ -361,7 +361,7 @@ class Fat:
                     self._get_first_cluster(dir_entry), answer["filesize"]
                 )
                 answer |= {
-                    "content": str(self.byte_formatting(content)),
+                    "content": str(self.byte_formatting(content, answer["filesize"])),
                     "slack": str(slack),
                 }
             directory_entries.append(answer)
