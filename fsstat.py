@@ -289,7 +289,7 @@ class Fat:
 
     @classmethod
     def byte_formatting(cls, data: bytes, modulo: int = 32) -> bytes:
-        32_BYTES_OF_NULL = b"\x00" * 32
+        32_BYTES_OF_NULL = bytes(32)
         stripped_value = data
         while stripped_value.endswith(32_BYTES_OF_NULL):
             stripped_value.removesuffix(32_BYTES_OF_NULL)
