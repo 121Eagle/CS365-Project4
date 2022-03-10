@@ -328,7 +328,7 @@ class Fat:
         returns:
             list[dict]: list of dictionaries, one dict per entry
         """
-        directory = self.byte_formatting(self._retrieve_data(cluster))
+        directory = bytes(self.byte_formatting(self._retrieve_data(cluster)))
         dir_sectors = self._get_sectors(cluster)
         directory_entries = []
         for entry_num, dir_entry in enumerate(
@@ -361,7 +361,7 @@ class Fat:
                     self._get_first_cluster(dir_entry), answer["filesize"]
                 )
                 answer |= {
-                    "content": str(self.byte_formatting(content, answer["filesize"])),
+                    "content": str(self.byte_formatting(bytes(content), answer["filesize"])),
                     "slack": str(slack),
                 }
             directory_entries.append(answer)
