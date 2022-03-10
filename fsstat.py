@@ -289,14 +289,18 @@ class Fat:
 
     @classmethod
     def byte_formatting(cls, data: bytes, modulo: int = 32) -> bytes:
-        stripped_value = bytearray(data.rstrip(b"\x00".decode(errors="ignore")))
-        length_still_needed = modulo - (len(stripped_value) % modulo)
+        32_BYTES_OF_NULL = b"\x00" * 32
+        stripped_value = data
+        while stripped_value.endswith(32_BYTES_OF_NULL):
+            stripped_value.removesuffix(32_BYTES_OF_NULL)
+        appended_value = bytearray(stripped_value)
+        length_still_needed = modulo - (len(appended_value) % modulo)
         # to get the amount of null bytes we still need to append
         # take the length of what we have stripped, and modulate it with
         # the modulo value.
         # then subtract that from modulo
-        stripped_value += bytearray(length_still_needed)
-        return bytes(stripped_value)
+        appended_value += bytearray(length_still_needed)
+        return bytes(appended_value)
 
     def parse_dir(self, cluster: int, parent="") -> list[dict[str, Any]]:
         """Parse a directory cluster, returns a list of dictionaries, one dict per entry.
