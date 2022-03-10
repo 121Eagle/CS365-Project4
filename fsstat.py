@@ -288,7 +288,7 @@ class Fat:
 
     @classmethod
     def byte_formatting(cls, data: bytes, modulo: int = 32) -> bytes:
-        stripped_value = bytearray(data.rstrip("\x00"))
+        stripped_value = bytearray(data.rstrip(b"\x00".decode(errors="ignore")))
         length_still_needed = modulo - (len(stripped_value) % modulo)
         # to get the amount of null bytes we still need to append
         # take the length of what we have stripped, and modulate it with
@@ -368,7 +368,7 @@ class Fat:
                             content.encode(errors="ignore"), answer["filesize"]
                         )
                     ),
-                    "slack": str(slack),
+                    "slack": str(slack, "utf8", "ignore"),
                 }
             directory_entries.append(answer)
         return directory_entries
